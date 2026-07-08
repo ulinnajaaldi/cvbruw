@@ -1,0 +1,17 @@
+{
+  "name": "cvbruw",
+  "version": "0.1.0",
+  "description": "ATS-friendly resume generator: JSON data -> HTML/Tailwind template -> PDF (via headless Chrome). Ships as a portable Agent Skill for Hermes Agent.",
+  "private": true,
+  "main": "src/render.js",
+  "scripts": {
+    "build:css": "tailwindcss -i src/input.css -o dist/tailwind.css --minify",
+    "generate": "bun run build:css && bun scripts/generate.js"
+  },
+  "dependencies": {
+    "puppeteer": "^25.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.2"
+  }
+}
