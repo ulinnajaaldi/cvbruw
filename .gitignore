@@ -1,4 +1,5 @@
 node_modules/
+web/node_modules/
 dist/tailwind.css
 *.pdf
 !/data/*.json
