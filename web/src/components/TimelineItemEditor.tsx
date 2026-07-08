@@ -111,7 +111,7 @@ export function TimelineItemEditor({
 				<FieldLabel>Highlights</FieldLabel>
 				<div className="space-y-1.5">
 					{item.highlights.map((h, i) => (
-						<div key={i} className="flex gap-1.5 items-start">
+						<div key={`highlight-${i}`} className="flex gap-1.5 items-start">
 							<Textarea
 								value={h}
 								onChange={(e) => updateHighlight(i, e.target.value)}

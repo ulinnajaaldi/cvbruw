@@ -6,6 +6,7 @@ import sampleData from "#/lib/sample-resume-data.json";
 import type { ResumeData } from "#/lib/types";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type SaveStatus = "idle" | "saving" | "saved";
 
@@ -17,7 +18,6 @@ const HomeFeature = () => {
 	const [downloadError, setDownloadError] = useState<string | null>(null);
 	const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	// Load whatever was previously saved in this browser, once, on mount.
 	useEffect(() => {
 		let cancelled = false;
 		loadResumeData().then((stored) => {
@@ -29,9 +29,8 @@ const HomeFeature = () => {
 		};
 	}, []);
 
-	// Debounced auto-save to IndexedDB whenever the data changes.
 	useEffect(() => {
-		if (!loaded) return; // don't save the initial sample over a not-yet-loaded state
+		if (!loaded) return;
 		setSaveStatus("saving");
 		if (saveTimer.current) clearTimeout(saveTimer.current);
 		saveTimer.current = setTimeout(() => {
@@ -87,8 +86,8 @@ const HomeFeature = () => {
 	}
 
 	return (
-		<div className="min-h-full">
-			<header className="sticky top-0 z-10 bg-background border-b px-4 py-3 flex items-center justify-between">
+		<div className="h-dvh flex flex-col">
+			<header className="shrink-0 border-b px-4 py-3 flex items-center justify-between">
 				<div>
 					<h1 className="text-sm font-semibold">CV ATS Maker</h1>
 					<p className="text-xs text-muted-foreground">
@@ -108,20 +107,20 @@ const HomeFeature = () => {
 			</header>
 
 			{downloadError && (
-				<div className="mx-4 mt-3">
+				<div className="mx-4 mt-3 shrink-0">
 					<Alert variant="error">
 						<AlertTitle>{downloadError}</AlertTitle>
 					</Alert>
 				</div>
 			)}
 
-			<main className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4">
-				<div className="max-w-xl mx-auto w-full">
+			<main className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4 p-4">
+				<div className="h-full min-h-0">
 					<ResumeEditor data={data} onChange={setData} />
 				</div>
-				<div className="overflow-auto max-h-[calc(100vh-5rem)] rounded-lg">
+				<ScrollArea className="h-full">
 					<ResumePreview data={data} />
-				</div>
+				</ScrollArea>
 			</main>
 		</div>
 	);
