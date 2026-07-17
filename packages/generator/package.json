@@ -1,0 +1,26 @@
+{
+	"name": "@cvbruw/generator",
+	"version": "0.1.0",
+	"main": "src/render.js",
+	"devDependencies": {
+		"@tailwindcss/cli": "^4.3.2",
+		"@types/react": "^19.2.17",
+		"typescript": "^7.0.2"
+	},
+	"exports": {
+		".": "./src/render.js",
+		"./template": "./src/template.tsx",
+		"./render": "./src/render.js"
+	},
+	"description": "ATS-friendly resume generator: JSON data -> HTML/Tailwind template -> PDF (via headless Chrome).",
+	"private": true,
+	"scripts": {
+		"build:css": "tailwindcss -i src/input.css -o dist/tailwind.css --minify",
+		"generate": "bun run build:css && bun scripts/generate.js"
+	},
+	"type": "module",
+	"dependencies": {
+		"@react-pdf/renderer": "^4.5.1",
+		"react": "^19.2.7"
+	}
+}

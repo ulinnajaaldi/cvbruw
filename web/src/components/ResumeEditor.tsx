@@ -110,6 +110,7 @@ export function ResumeEditor({
 								onClick={() => goToStep(i)}
 								className={[
 									"shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors",
+									"inline-flex items-center gap-1",
 									active
 										? "bg-primary text-primary-foreground"
 										: "bg-muted text-muted-foreground hover:bg-muted/80",
@@ -118,9 +119,9 @@ export function ResumeEditor({
 								{s.kind === "add" ? (
 									<Plus className="size-3" />
 								) : (
-									<span className="mr-1 opacity-60">{i + 1}</span>
+									<span className="opacity-60">{i + 1}</span>
 								)}
-								{label}
+								<span>{label}</span>
 							</button>
 						);
 					})}
@@ -168,7 +169,7 @@ export function ResumeEditor({
 					})()}
 
 				{step?.kind === "add" && (
-					<div className="rounded-2xl border border-dashed p-4 space-y-3">
+					<div className="rounded-2xl border border-dashed p-4 flex flex-col gap-3">
 						<h3 className="text-sm font-semibold">Add a new section</h3>
 						<Input
 							placeholder="Section title, e.g. Certifications"

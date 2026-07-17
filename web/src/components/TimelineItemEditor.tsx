@@ -40,7 +40,7 @@ export function TimelineItemEditor({
 	}
 
 	return (
-		<div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
+		<div className="rounded-lg border border-border bg-muted/40 p-3 flex flex-col gap-2">
 			<div className="flex justify-end gap-1 -mt-1 -mr-1">
 				<Button
 					variant="ghost"
@@ -109,7 +109,7 @@ export function TimelineItemEditor({
 
 			<Field>
 				<FieldLabel>Highlights</FieldLabel>
-				<div className="space-y-1.5">
+				<div className="flex flex-col gap-1.5">
 					{item.highlights.map((h, i) => (
 						<div key={`highlight-${i}`} className="flex gap-1.5 items-start">
 							<Textarea

@@ -29,7 +29,7 @@ export function SectionEditor({
 	}
 
 	return (
-		<div className="rounded-2xl border bg-card p-4 space-y-3">
+		<div className="rounded-2xl border bg-card p-4 flex flex-col gap-3">
 			<div className="flex items-center justify-between gap-2">
 				<Input
 					className="flex-1 font-semibold"
@@ -59,7 +59,7 @@ export function SectionEditor({
 				</div>
 			</div>
 
-			<div className="space-y-2">
+			<div className="flex flex-col gap-2">
 				{section.type === "timeline"
 					? section.items.map((item, i) => (
 							<TimelineItemEditor

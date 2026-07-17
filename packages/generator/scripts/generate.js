@@ -1,19 +1,7 @@
 #!/usr/bin/env bun
-/**
- * Standalone CLI: generate an ATS-friendly resume PDF from a JSON data file.
- *
- * Usage:
- *   bun scripts/generate.js <data.json> [output.pdf]
- *
- * Design note: this script does NOT require the web app (TanStack Start)
- * to be running. It calls the render engine (src/render.js) directly,
- * so it works standalone on a bare VPS -- which is exactly what the
- * Hermes Agent skill needs to call.
- */
-
-const path = require("path");
-const fs = require("fs");
-const { renderResumePdf } = require("../src/render");
+import path from "node:path";
+import fs from "node:fs";
+import { renderResumePdf } from "../src/render.js";
 
 async function main() {
   const [, , dataPathArg, outputPathArg] = process.argv;

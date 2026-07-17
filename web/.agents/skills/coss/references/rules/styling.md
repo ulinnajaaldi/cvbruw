@@ -6,7 +6,7 @@ Use this guide when writing or updating coss primitives, particles, and docs exa
 
 - Use semantic tokens (`text-muted-foreground`, `bg-destructive`) over raw palette classes.
 - Prefer component variants/size props before custom class overrides.
-- Use `flex flex-col gap-*` layouts instead of `space-x-*`/`space-y-*`.
+- Use `flex flex-col gap-*` layouts instead of `space-x-*`/`flex flex-col gap-*`.
 - Use `size-*` for square sizing.
 - Use `cn()` for conditional class composition.
 - Avoid redundant classes that defaults already cover (for example `border-border` when border color is already inherited).
@@ -75,7 +75,7 @@ const geistMono = Geist_Mono({ variable: "--font-mono", subsets: ["latin"] });
 
 // Don't
 <Button className="bg-blue-500 text-white" />
-<div className="space-y-3" />
+<div className="flex flex-col gap-3" />
 <Icon size={16} />
 <Button className="group">
   Save

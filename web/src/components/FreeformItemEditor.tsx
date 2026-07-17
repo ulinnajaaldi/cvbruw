@@ -18,7 +18,7 @@ export function FreeformItemEditor({
 	}
 
 	return (
-		<div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
+		<div className="rounded-lg border border-border bg-muted/40 p-3 flex flex-col gap-2">
 			<div className="flex justify-end -mt-1 -mr-1">
 				<Button variant="ghost" size="sm" onClick={onRemove}>
 					Remove entry

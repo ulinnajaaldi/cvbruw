@@ -4,6 +4,7 @@ import { ResumePreview } from "#/components/ResumePreview";
 import { clearResumeData, loadResumeData, saveResumeData } from "#/lib/db";
 import sampleData from "#/lib/sample-resume-data.json";
 import type { ResumeData } from "#/lib/types";
+import { generatePdf } from "#/server/generate-pdf";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -46,16 +47,9 @@ const HomeFeature = () => {
 		setDownloading(true);
 		setDownloadError(null);
 		try {
-			const res = await fetch("/api/generate-pdf", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(data),
-			});
-			if (!res.ok) {
-				const message = await res.text();
-				throw new Error(message || `Request failed with status ${res.status}`);
-			}
-			const blob = await res.blob();
+			const { pdf } = await generatePdf({ data });
+			const bytes = Uint8Array.from(atob(pdf), (c) => c.charCodeAt(0));
+			const blob = new Blob([bytes], { type: "application/pdf" });
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			const slug = (data.basics.name || "resume")
@@ -89,7 +83,7 @@ const HomeFeature = () => {
 		<div className="h-dvh flex flex-col">
 			<header className="shrink-0 border-b px-4 py-3 flex items-center justify-between">
 				<div>
-					<h1 className="text-sm font-semibold">CV ATS Maker</h1>
+					<h1 className="text-sm font-semibold">CVBRUW: The ATS Maker</h1>
 					<p className="text-xs text-muted-foreground">
 						{saveStatus === "saving" && "Saving to this browser…"}
 						{saveStatus === "saved" && "Saved in this browser"}

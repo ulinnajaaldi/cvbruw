@@ -1,8 +1,7 @@
 node_modules/
-web/node_modules/
-dist/tailwind.css
+packages/generator/dist/tailwind.css
 *.pdf
-!/data/*.json
+!packages/generator/data/*.json
 
 .kilo
 /graphify-out

@@ -1,4 +1,4 @@
-import HomeFeature from '#/features/Home'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
+import HomeFeature from "#/features/Home";
 
-export const Route = createFileRoute('/')({ component: HomeFeature })
+export const Route = createFileRoute("/")({ component: HomeFeature });

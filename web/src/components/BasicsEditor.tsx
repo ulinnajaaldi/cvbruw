@@ -43,7 +43,7 @@ export function BasicsEditor({
 			<CardHeader>
 				<CardTitle>Basics</CardTitle>
 			</CardHeader>
-			<CardPanel className="space-y-3 pt-0">
+			<CardPanel className="flex flex-col gap-3 pt-0">
 				<Field>
 					<FieldLabel>Full name</FieldLabel>
 					<Input
@@ -92,7 +92,7 @@ export function BasicsEditor({
 
 				<Field>
 					<FieldLabel>Links</FieldLabel>
-					<div className="space-y-2">
+					<div className="flex flex-col gap-2 w-full">
 						{basics.links.map((link, i) => (
 							<div key={i} className="flex gap-2 items-center">
 								<Input
