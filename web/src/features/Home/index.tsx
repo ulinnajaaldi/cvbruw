@@ -80,7 +80,7 @@ const HomeFeature = () => {
 	}
 
 	return (
-		<div className="h-dvh flex flex-col">
+		<div className="h-auto lg:h-dvh flex flex-col">
 			<header className="shrink-0 border-b px-4 py-3 flex items-center justify-between">
 				<div>
 					<h1 className="text-sm font-semibold">CVBRUW: The ATS Maker</h1>
@@ -108,7 +108,7 @@ const HomeFeature = () => {
 				</div>
 			)}
 
-			<main className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4 p-4">
+			<main className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 h-full">
 				<div className="h-full min-h-0">
 					<ResumeEditor data={data} onChange={setData} />
 				</div>
