@@ -1,4 +1,4 @@
-import { useRouter } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import {
 	CheckCircle,
 	ChevronDown,
@@ -7,7 +7,7 @@ import {
 	Settings,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { saveResumeData } from "#/lib/db";
+import { listResumes, saveResume } from "#/lib/db";
 import { extractTextFromPdf } from "#/lib/extract-pdf-text";
 import { extractResumeData } from "#/server/extract-resume";
 import { Alert, AlertTitle } from "@/components/ui/alert";
@@ -96,6 +96,11 @@ export default function LandingFeature() {
 	const [error, setError] = useState<string | null>(null);
 	const [dragOver, setDragOver] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	const [hasResumes, setHasResumes] = useState(false);
+
+	useEffect(() => {
+		listResumes().then((r) => setHasResumes(r.length > 0));
+	}, []);
 
 	useEffect(() => {
 		const s = loadSettings();
@@ -188,9 +193,9 @@ export default function LandingFeature() {
 			}
 
 			setPhase("saving");
-			await saveResumeData(result.data);
+			const saved = await saveResume(result.data);
 			setPhase("done");
-			router.navigate({ to: "/editor" });
+			router.navigate({ to: "/editor", search: { resumeId: saved.id } });
 		},
 		[apiKey, baseUrl, model, router],
 	);
@@ -223,6 +228,15 @@ export default function LandingFeature() {
 					<p className="text-muted-foreground">
 						Upload your resume, get an ATS-friendly version instantly.
 					</p>
+					{hasResumes && (
+						<Link
+							to="/editor"
+							className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mt-2"
+						>
+							<ExternalLink className="size-3" />
+							Open existing resume
+						</Link>
+					)}
 				</div>
 
 				<div className="space-y-3">
@@ -398,13 +412,13 @@ export default function LandingFeature() {
 				)}
 
 				<div className="text-center">
-					<a
-						href="/editor"
+					<Link
+						to="/editor"
 						className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
 					>
 						Already have a resume? Open editor
 						<ExternalLink className="size-3" />
-					</a>
+					</Link>
 				</div>
 			</div>
 		</div>
