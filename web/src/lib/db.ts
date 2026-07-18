@@ -17,12 +17,11 @@ let dbPromise: Promise<IDBPDatabase> | null = null;
 function getDB(): Promise<IDBPDatabase> {
 	if (!dbPromise) {
 		dbPromise = openDB(DB_NAME, DB_VERSION, {
-			upgrade(db, oldVersion) {
+			upgrade(db, oldVersion, _newVersion, tx) {
 				if (!db.objectStoreNames.contains(STORE_NAME)) {
 					db.createObjectStore(STORE_NAME);
 				}
 				if (oldVersion < 2) {
-					const tx = db.transaction(STORE_NAME, "readwrite");
 					const store = tx.objectStore(STORE_NAME);
 					store.get("current").then((oldData) => {
 						if (oldData) {
@@ -46,9 +45,7 @@ function getDB(): Promise<IDBPDatabase> {
 export async function listResumes(): Promise<SavedResume[]> {
 	const db = await getDB();
 	const all = await db.getAll(STORE_NAME);
-	return (all as SavedResume[])
-		.filter((r) => r.id !== "current")
-		.sort((a, b) => b.updatedAt - a.updatedAt);
+	return (all as SavedResume[]).sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
 export async function loadResume(id: string): Promise<SavedResume | null> {

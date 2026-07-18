@@ -13,6 +13,14 @@ import { extractResumeData } from "#/server/extract-resume";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectItem,
+	SelectPopup,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 
 interface ProviderPreset {
@@ -240,13 +248,10 @@ export default function LandingFeature() {
 				</div>
 
 				<div className="space-y-3">
-					<label
-						htmlFor="api-key"
-						className="text-sm font-medium flex items-center gap-1.5"
-					>
+					<Label htmlFor="api-key" className="gap-1.5">
 						<Key className="size-3.5" />
 						API Key
-					</label>
+					</Label>
 					<div className="flex gap-2">
 						<Input
 							id="api-key"
@@ -279,25 +284,29 @@ export default function LandingFeature() {
 					</div>
 
 					<div className="space-y-2">
-						<label
+						<Label
 							htmlFor="provider"
 							className="text-xs font-medium text-muted-foreground"
 						>
 							Provider
-						</label>
-						<select
-							id="provider"
+						</Label>
+						<Select
 							value={providerId}
-							onChange={(e) => handleProviderChange(e.target.value)}
-							disabled={isProcessing}
-							className="h-8.5 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none ring-ring/24 transition-shadow focus-visible:border-ring focus-visible:ring-[3px] disabled:opacity-64 sm:h-7.5 dark:bg-input/32"
+							onValueChange={(value) => {
+								if (value) handleProviderChange(value);
+							}}
 						>
-							{PROVIDERS.map((p) => (
-								<option key={p.id} value={p.id}>
-									{p.label}
-								</option>
-							))}
-						</select>
+							<SelectTrigger id="provider" disabled={isProcessing}>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectPopup>
+								{PROVIDERS.map((p) => (
+									<SelectItem key={p.id} value={p.id}>
+										{p.label}
+									</SelectItem>
+								))}
+							</SelectPopup>
+						</Select>
 					</div>
 
 					<button
@@ -315,12 +324,12 @@ export default function LandingFeature() {
 					{showAdvanced && (
 						<div className="space-y-2 rounded-lg border border-border p-3">
 							<div className="space-y-1">
-								<label
+								<Label
 									htmlFor="base-url"
 									className="text-xs font-medium text-muted-foreground"
 								>
 									Base URL
-								</label>
+								</Label>
 								<Input
 									id="base-url"
 									value={baseUrl}
@@ -330,7 +339,6 @@ export default function LandingFeature() {
 									}}
 									placeholder="https://api.openai.com/v1"
 									disabled={isProcessing}
-									size="sm"
 								/>
 								<p className="text-xs text-muted-foreground">
 									https://domain.com/v1 — /chat/completions or /messages
@@ -338,12 +346,12 @@ export default function LandingFeature() {
 								</p>
 							</div>
 							<div className="space-y-1">
-								<label
+								<Label
 									htmlFor="model"
 									className="text-xs font-medium text-muted-foreground"
 								>
 									Model
-								</label>
+								</Label>
 								<Input
 									id="model"
 									value={model}
@@ -353,7 +361,6 @@ export default function LandingFeature() {
 									}}
 									placeholder="gpt-4o-mini"
 									disabled={isProcessing}
-									size="sm"
 								/>
 							</div>
 						</div>

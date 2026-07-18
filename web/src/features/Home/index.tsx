@@ -16,6 +16,7 @@ import { Route as EditorRoute } from "#/routes/editor";
 import { generatePdf } from "#/server/generate-pdf";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Menu, MenuItem, MenuPopup, MenuTrigger } from "@/components/ui/menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 type SaveStatus = "idle" | "saving" | "saved";
@@ -30,7 +31,6 @@ const HomeFeature = () => {
 	const [downloading, setDownloading] = useState(false);
 	const [downloadError, setDownloadError] = useState<string | null>(null);
 	const [resumes, setResumes] = useState<SavedResume[]>([]);
-	const [showList, setShowList] = useState(false);
 	const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	useEffect(() => {
@@ -122,7 +122,7 @@ const HomeFeature = () => {
 
 	return (
 		<div className="h-auto lg:h-dvh flex flex-col">
-			<header className="shrink-0 border-b px-4 py-3 flex items-center justify-between relative">
+			<header className="shrink-0 border-b px-4 py-3 flex items-center justify-between">
 				<div className="flex items-center gap-3">
 					<Link
 						to="/"
@@ -140,13 +140,35 @@ const HomeFeature = () => {
 					</div>
 				</div>
 				<div className="flex items-center gap-2">
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={() => setShowList(!showList)}
-					>
-						Switch
-					</Button>
+					<Menu>
+						<MenuTrigger render={<Button variant="ghost" size="sm" />}>
+							Switch
+						</MenuTrigger>
+						<MenuPopup align="start">
+							{resumes.length === 0 && (
+								<MenuItem disabled>No saved resumes</MenuItem>
+							)}
+							{resumes.map((r) => (
+								<MenuItem
+									key={r.id}
+									onClick={() => {
+										navigate({
+											to: "/editor",
+											search: { resumeId: r.id },
+										});
+									}}
+									className="min-w-28"
+								>
+									<div className="flex flex-col min-w-0">
+										<span className="truncate">{r.name}</span>
+										<span className="text-xs text-muted-foreground">
+											{new Date(r.updatedAt).toLocaleDateString()}
+										</span>
+									</div>
+								</MenuItem>
+							))}
+						</MenuPopup>
+					</Menu>
 					<Button variant="ghost" size="sm" onClick={handleNewResume}>
 						New
 					</Button>
@@ -158,32 +180,6 @@ const HomeFeature = () => {
 					</Button>
 				</div>
 			</header>
-
-			{showList && (
-				<div className="absolute top-full left-0 right-0 z-50 border-b bg-popover p-2 shadow-lg">
-					{resumes.length === 0 && (
-						<p className="text-xs text-muted-foreground px-2">
-							No saved resumes
-						</p>
-					)}
-					{resumes.map((r) => (
-						<button
-							key={r.id}
-							type="button"
-							className={`w-full text-left px-2 py-1.5 rounded text-sm hover:bg-accent ${r.id === resumeId ? "bg-accent font-medium" : ""}`}
-							onClick={() => {
-								navigate({ to: "/editor", search: { resumeId: r.id } });
-								setShowList(false);
-							}}
-						>
-							<span className="block truncate">{r.name}</span>
-							<span className="block text-xs text-muted-foreground">
-								{new Date(r.updatedAt).toLocaleDateString()}
-							</span>
-						</button>
-					))}
-				</div>
-			)}
 
 			{downloadError && (
 				<div className="mx-4 mt-3 shrink-0">
