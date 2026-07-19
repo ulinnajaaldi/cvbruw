@@ -3,8 +3,10 @@ import {
 	CheckCircle,
 	ChevronDown,
 	ExternalLink,
+	FileText,
 	Key,
 	Settings,
+	Upload,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { listResumes, saveResume } from "#/lib/db";
@@ -12,6 +14,13 @@ import { extractTextFromPdf } from "#/lib/extract-pdf-text";
 import { extractResumeData } from "#/server/extract-resume";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -230,9 +239,9 @@ export default function LandingFeature() {
 
 	return (
 		<div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
-			<div className="w-full max-w-lg space-y-8">
+			<div className="w-full max-w-xl space-y-6">
 				<div className="text-center space-y-2">
-					<h1 className="text-3xl font-bold tracking-tight">CVBRUW</h1>
+					<h1 className="text-4xl font-bold tracking-tight">CVBRUW</h1>
 					<p className="text-muted-foreground">
 						Upload your resume, get an ATS-friendly version instantly.
 					</p>
@@ -247,170 +256,193 @@ export default function LandingFeature() {
 					)}
 				</div>
 
-				<div className="space-y-3">
-					<Label htmlFor="api-key" className="gap-1.5">
-						<Key className="size-3.5" />
-						API Key
-					</Label>
-					<div className="flex gap-2">
-						<Input
-							id="api-key"
-							type="password"
-							placeholder="sk-..."
-							value={apiKey}
-							onChange={(e) => {
-								setApiKey(e.target.value);
-								setSaved(false);
+				<Card>
+					<CardHeader>
+						<CardTitle>Configuration</CardTitle>
+						<CardDescription>Set up your AI provider</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<div className="space-y-2">
+							<Label htmlFor="api-key" className="gap-1.5">
+								<Key className="size-3.5" />
+								API Key
+							</Label>
+							<div className="flex gap-2">
+								<Input
+									id="api-key"
+									type="password"
+									placeholder="sk-..."
+									value={apiKey}
+									onChange={(e) => {
+										setApiKey(e.target.value);
+										setSaved(false);
+									}}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") handleSaveSettings();
+									}}
+									disabled={isProcessing}
+								/>
+								<Button
+									variant="outline"
+									onClick={handleSaveSettings}
+									disabled={isProcessing || !apiKey.trim()}
+								>
+									{saved ? (
+										<span className="flex items-center gap-1">
+											<CheckCircle className="size-3.5 text-success" />
+											Saved
+										</span>
+									) : (
+										"Save"
+									)}
+								</Button>
+							</div>
+						</div>
+
+						<div className="space-y-2">
+							<Label
+								htmlFor="provider"
+								className="text-xs font-medium text-muted-foreground"
+							>
+								Provider
+							</Label>
+							<Select
+								value={providerId}
+								onValueChange={(value) => {
+									if (value) handleProviderChange(value);
+								}}
+							>
+								<SelectTrigger id="provider" disabled={isProcessing}>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectPopup>
+									{PROVIDERS.map((p) => (
+										<SelectItem key={p.id} value={p.id}>
+											{p.label}
+										</SelectItem>
+									))}
+								</SelectPopup>
+							</Select>
+						</div>
+
+						<button
+							type="button"
+							className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+							onClick={() => setShowAdvanced(!showAdvanced)}
+						>
+							<Settings className="size-3" />
+							Advanced settings
+							<ChevronDown
+								className={`size-3 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
+							/>
+						</button>
+
+						{showAdvanced && (
+							<div className="space-y-2 rounded-lg border border-border p-3">
+								<div className="space-y-1">
+									<Label
+										htmlFor="base-url"
+										className="text-xs font-medium text-muted-foreground"
+									>
+										Base URL
+									</Label>
+									<Input
+										id="base-url"
+										value={baseUrl}
+										onChange={(e) => {
+											setBaseUrl(e.target.value);
+											setSaved(false);
+										}}
+										placeholder="https://api.openai.com/v1"
+										disabled={isProcessing}
+									/>
+									<p className="text-xs text-muted-foreground">
+										https://domain.com/v1 — /chat/completions or /messages
+										appended automatically
+									</p>
+								</div>
+								<div className="space-y-1">
+									<Label
+										htmlFor="model"
+										className="text-xs font-medium text-muted-foreground"
+									>
+										Model
+									</Label>
+									<Input
+										id="model"
+										value={model}
+										onChange={(e) => {
+											setModel(e.target.value);
+											setSaved(false);
+										}}
+										placeholder="gpt-4o-mini"
+										disabled={isProcessing}
+									/>
+								</div>
+							</div>
+						)}
+
+						<p className="text-xs text-muted-foreground">
+							Stored locally in your browser. Never sent to our servers.
+						</p>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardContent className="p-0">
+						<button
+							type="button"
+							className={`
+								relative flex w-full flex-col items-center justify-center gap-3 rounded-2xl p-12 transition-all duration-200 cursor-pointer
+								${dragOver ? "bg-accent" : "hover:bg-accent/50"}
+								${isProcessing ? "pointer-events-none opacity-60" : ""}
+							`}
+							onDragOver={(e) => {
+								e.preventDefault();
+								setDragOver(true);
 							}}
-							onKeyDown={(e) => {
-								if (e.key === "Enter") handleSaveSettings();
-							}}
+							onDragLeave={() => setDragOver(false)}
+							onDrop={handleDrop}
+							onClick={() => fileInputRef.current?.click()}
 							disabled={isProcessing}
-						/>
-						<Button
-							variant="outline"
-							onClick={handleSaveSettings}
-							disabled={isProcessing || !apiKey.trim()}
 						>
-							{saved ? (
-								<span className="flex items-center gap-1">
-									<CheckCircle className="size-3.5 text-success" />
-									Saved
-								</span>
+							<input
+								ref={fileInputRef}
+								type="file"
+								accept=".pdf,application/pdf"
+								className="hidden"
+								onChange={handleFileSelect}
+							/>
+
+							{isProcessing ? (
+								<>
+									<Spinner className="size-8" />
+									<p className="text-sm text-muted-foreground">
+										{phaseLabels[phase]}
+									</p>
+								</>
 							) : (
-								"Save"
+								<div className="flex flex-col items-center gap-2 text-center">
+									<div className="flex size-10 items-center justify-center rounded-xl bg-muted">
+										{dragOver ? (
+											<Upload className="size-5 text-muted-foreground" />
+										) : (
+											<FileText className="size-5 text-muted-foreground" />
+										)}
+									</div>
+									<div>
+										<p className="text-sm font-medium">
+											Drop your resume PDF here
+										</p>
+										<p className="text-xs text-muted-foreground">
+											or click to browse
+										</p>
+									</div>
+								</div>
 							)}
-						</Button>
-					</div>
-
-					<div className="space-y-2">
-						<Label
-							htmlFor="provider"
-							className="text-xs font-medium text-muted-foreground"
-						>
-							Provider
-						</Label>
-						<Select
-							value={providerId}
-							onValueChange={(value) => {
-								if (value) handleProviderChange(value);
-							}}
-						>
-							<SelectTrigger id="provider" disabled={isProcessing}>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectPopup>
-								{PROVIDERS.map((p) => (
-									<SelectItem key={p.id} value={p.id}>
-										{p.label}
-									</SelectItem>
-								))}
-							</SelectPopup>
-						</Select>
-					</div>
-
-					<button
-						type="button"
-						className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-						onClick={() => setShowAdvanced(!showAdvanced)}
-					>
-						<Settings className="size-3" />
-						Advanced settings
-						<ChevronDown
-							className={`size-3 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
-						/>
-					</button>
-
-					{showAdvanced && (
-						<div className="space-y-2 rounded-lg border border-border p-3">
-							<div className="space-y-1">
-								<Label
-									htmlFor="base-url"
-									className="text-xs font-medium text-muted-foreground"
-								>
-									Base URL
-								</Label>
-								<Input
-									id="base-url"
-									value={baseUrl}
-									onChange={(e) => {
-										setBaseUrl(e.target.value);
-										setSaved(false);
-									}}
-									placeholder="https://api.openai.com/v1"
-									disabled={isProcessing}
-								/>
-								<p className="text-xs text-muted-foreground">
-									https://domain.com/v1 — /chat/completions or /messages
-									appended automatically
-								</p>
-							</div>
-							<div className="space-y-1">
-								<Label
-									htmlFor="model"
-									className="text-xs font-medium text-muted-foreground"
-								>
-									Model
-								</Label>
-								<Input
-									id="model"
-									value={model}
-									onChange={(e) => {
-										setModel(e.target.value);
-										setSaved(false);
-									}}
-									placeholder="gpt-4o-mini"
-									disabled={isProcessing}
-								/>
-							</div>
-						</div>
-					)}
-
-					<p className="text-xs text-muted-foreground">
-						Stored locally in your browser. Never sent to our servers.
-					</p>
-				</div>
-
-				<button
-					type="button"
-					className={`
-						relative flex w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-12 transition-colors cursor-pointer
-						${dragOver ? "border-primary bg-primary/4" : "border-border hover:border-primary/50"}
-						${isProcessing ? "pointer-events-none opacity-60" : ""}
-					`}
-					onDragOver={(e) => {
-						e.preventDefault();
-						setDragOver(true);
-					}}
-					onDragLeave={() => setDragOver(false)}
-					onDrop={handleDrop}
-					onClick={() => fileInputRef.current?.click()}
-					disabled={isProcessing}
-				>
-					<input
-						ref={fileInputRef}
-						type="file"
-						accept=".pdf,application/pdf"
-						className="hidden"
-						onChange={handleFileSelect}
-					/>
-
-					{isProcessing ? (
-						<>
-							<Spinner className="size-8" />
-							<p className="text-sm text-muted-foreground">
-								{phaseLabels[phase]}
-							</p>
-						</>
-					) : (
-						<div className="text-center">
-							<p className="text-sm font-medium">Drop your resume PDF here</p>
-							<p className="text-xs text-muted-foreground">
-								or click to browse
-							</p>
-						</div>
-					)}
-				</button>
+						</button>
+					</CardContent>
+				</Card>
 
 				{error && (
 					<Alert variant="error">

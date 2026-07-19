@@ -122,7 +122,7 @@ const HomeFeature = () => {
 
 	return (
 		<div className="h-auto lg:h-dvh flex flex-col">
-			<header className="shrink-0 border-b px-4 py-3 flex items-center justify-between">
+			<header className="shrink-0 border-b px-4 py-3 flex items-center justify-between gap-2 flex-wrap">
 				<div className="flex items-center gap-3">
 					<Link
 						to="/"
@@ -139,7 +139,7 @@ const HomeFeature = () => {
 						</p>
 					</div>
 				</div>
-				<div className="flex items-center gap-2">
+				<div className="flex items-center gap-1.5 flex-wrap justify-end">
 					<Menu>
 						<MenuTrigger render={<Button variant="ghost" size="sm" />}>
 							Switch
