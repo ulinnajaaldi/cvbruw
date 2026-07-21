@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "bun run build",
+  "buildCommand": "vite build",
   "installCommand": "bun install",
-  "outputDirectory": "web/dist/client",
+  "outputDirectory": "dist/client",
   "rewrites": [
     {
       "source": "/((?!assets|fonts|favicon\\.ico|logo|manifest|robots).*)",
