@@ -5,3 +5,6 @@ packages/generator/dist/tailwind.css
 
 .kilo
 /graphify-out
+/plans
+.agents/
+skills-lock.json
