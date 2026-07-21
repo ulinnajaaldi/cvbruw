@@ -10,6 +10,7 @@
 	"scripts": {
 		"dev": "bun run --filter cvbruw-web dev",
 		"build": "bun run --filter cvbruw-web build",
+		"preview": "bun run --filter cvbruw-web preview",
 		"generate": "bun run --filter @cvbruw/generator generate",
 		"format": "biome format",
 		"lint": "biome lint",
