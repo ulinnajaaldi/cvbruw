@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -12,12 +12,14 @@ export function TimelineItemEditor({
 	onRemove,
 	onMoveUp,
 	onMoveDown,
+	onAIImprove,
 }: {
 	item: TimelineItem;
 	onChange: (item: TimelineItem) => void;
 	onRemove: () => void;
 	onMoveUp: () => void;
 	onMoveDown: () => void;
+	onAIImprove?: () => void;
 }) {
 	function set<K extends keyof TimelineItem>(key: K, value: TimelineItem[K]) {
 		onChange({ ...item, [key]: value });
@@ -42,6 +44,17 @@ export function TimelineItemEditor({
 	return (
 		<div className="rounded-lg border border-border bg-muted/40 p-3 flex flex-col gap-2">
 			<div className="flex justify-end gap-1 -mt-1 -mr-1">
+				{onAIImprove && (
+					<Button
+						variant="ghost"
+						size="icon-xs"
+						onClick={onAIImprove}
+						aria-label="AI improve this entry"
+						title="AI improve this entry"
+					>
+						<Sparkles />
+					</Button>
+				)}
 				<Button
 					variant="ghost"
 					size="icon-xs"

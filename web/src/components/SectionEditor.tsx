@@ -13,12 +13,14 @@ export function SectionEditor({
 	onRemove,
 	onMoveUp,
 	onMoveDown,
+	onAIImproveItem,
 }: {
 	section: ResumeSection;
 	onChange: (section: ResumeSection) => void;
 	onRemove: () => void;
 	onMoveUp: () => void;
 	onMoveDown: () => void;
+	onAIImproveItem?: (itemIndex: number) => void;
 }) {
 	function addItem() {
 		if (section.type === "timeline") {
@@ -81,7 +83,13 @@ export function SectionEditor({
 									})
 								}
 								onMoveDown={() =>
-									onChange({ ...section, items: moveItem(section.items, i, 1) })
+									onChange({
+										...section,
+										items: moveItem(section.items, i, 1),
+									})
+								}
+								onAIImprove={
+									onAIImproveItem ? () => onAIImproveItem(i) : undefined
 								}
 							/>
 						))

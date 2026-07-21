@@ -1,5 +1,6 @@
-import { ArrowLeft, ArrowRight, Plus } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, ArrowRight, Plus, Sparkles } from "lucide-react";
+import { useCallback, useState } from "react";
+import type { AISuggestion } from "#/server/ai-generate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { moveItem, removeAt, updateAt } from "../lib/array-utils";
 import type { ResumeData, ResumeSection } from "../lib/types";
+import { AIPanel } from "./AIPanel";
 import { BasicsEditor } from "./BasicsEditor";
 import { SectionEditor } from "./SectionEditor";
 
@@ -33,6 +35,17 @@ type StepEntry =
 	| { kind: "section"; id: string; title: string }
 	| { kind: "add" };
 
+export type ActiveStep =
+	| { kind: "basics" }
+	| {
+			kind: "section";
+			id: string;
+			title: string;
+			sectionType: "timeline" | "freeform";
+			itemCount: number;
+	  }
+	| { kind: "add" };
+
 export function ResumeEditor({
 	data,
 	onChange,
@@ -45,6 +58,8 @@ export function ResumeEditor({
 	);
 	const [newSectionTitle, setNewSectionTitle] = useState("");
 	const [currentStep, setCurrentStep] = useState(0);
+	const [showAIPanel, setShowAIPanel] = useState(false);
+	const [aiItemContext, setAiItemContext] = useState<string | null>(null);
 
 	const steps: StepEntry[] = [
 		{ kind: "basics" },
@@ -88,7 +103,116 @@ export function ResumeEditor({
 		}
 	}
 
+	function handleAIImproveItem(itemIndex: number) {
+		if (!step || step.kind !== "section") return;
+		const sec = data.sections.find((s) => s.id === step.id);
+		if (!sec || sec.type !== "timeline") return;
+		const item = sec.items[itemIndex];
+		if (!item) return;
+
+		const highlights = item.highlights.filter(Boolean).join("\n");
+		const context = `Focus on this specific work experience entry at ${item.organization || "unknown organization"}:
+
+Organization: ${item.organization || "(empty)"}
+Location: ${item.location || "(empty)"}
+Role: ${item.role || "(empty)"} (${item.dateStart || "?"} - ${item.dateEnd || "?"})
+Highlights:
+${highlights || "(no highlights yet)"}
+
+Improve the bullet points using the XYZ formula: "Accomplished [X] as measured by [Y] by doing [Z]". Add quantified metrics where possible. Ensure each bullet starts with a strong action verb.`;
+
+		setAiItemContext(context);
+		setShowAIPanel(true);
+	}
+
+	const handleApplyAISuggestions = useCallback(
+		(suggestions: AISuggestion[]) => {
+			let newData = { ...data };
+			for (const suggestion of suggestions) {
+				const sectionIdx = newData.sections.findIndex(
+					(s) => s.id === suggestion.sectionId,
+				);
+				if (sectionIdx === -1) continue;
+
+				const section = newData.sections[sectionIdx];
+				if (section.type === "timeline" && suggestion.itemId !== undefined) {
+					const item = section.items[suggestion.itemId];
+					if (!item) continue;
+
+					if (
+						suggestion.field === "highlights" &&
+						Array.isArray(item.highlights)
+					) {
+						const highlightIdx = item.highlights.indexOf(
+							suggestion.currentValue,
+						);
+						if (highlightIdx >= 0) {
+							const newItems = [...section.items];
+							const newItem = { ...item, highlights: [...item.highlights] };
+							newItem.highlights[highlightIdx] = suggestion.suggestedValue;
+							newItems[suggestion.itemId] = newItem;
+							newData = {
+								...newData,
+								sections: updateAt(newData.sections, sectionIdx, {
+									...section,
+									items: newItems,
+								}),
+							};
+						}
+					}
+				} else if (
+					section.type === "freeform" &&
+					suggestion.itemId !== undefined
+				) {
+					const item = section.items[suggestion.itemId];
+					if (!item) continue;
+
+					if (suggestion.field === "text") {
+						const newItems = [...section.items];
+						newItems[suggestion.itemId] = {
+							...item,
+							text: suggestion.suggestedValue,
+						};
+						newData = {
+							...newData,
+							sections: updateAt(newData.sections, sectionIdx, {
+								...section,
+								items: newItems,
+							}),
+						};
+					}
+				}
+			}
+			onChange(newData);
+		},
+		[data, onChange],
+	);
+
 	const step = steps[currentStep];
+
+	const activeStep: ActiveStep =
+		step?.kind === "section"
+			? (() => {
+					const sec = data.sections.find((s) => s.id === step.id);
+					return sec
+						? {
+								kind: "section",
+								id: sec.id,
+								title: sec.title,
+								sectionType: sec.type,
+								itemCount: sec.items.length,
+							}
+						: {
+								kind: "section",
+								id: step.id,
+								title: step.title,
+								sectionType: "timeline",
+								itemCount: 0,
+							};
+				})()
+			: step?.kind === "basics"
+				? { kind: "basics" }
+				: { kind: "add" };
 
 	return (
 		<div className="flex flex-col h-full overflow-hidden">
@@ -128,6 +252,14 @@ export function ResumeEditor({
 				</div>
 			</ScrollArea>
 
+			{/* AI button */}
+			<div className="shrink-0 px-1 py-1">
+				<Button variant="ghost" size="sm" onClick={() => setShowAIPanel(true)}>
+					<Sparkles className="size-3.5" />
+					AI Improve
+				</Button>
+			</div>
+
 			{/* Step content */}
 			<ScrollArea className="flex-1 min-h-0 px-1 pb-4">
 				{step?.kind === "basics" && (
@@ -163,6 +295,9 @@ export function ResumeEditor({
 										...data,
 										sections: moveItem(data.sections, idx, 1),
 									})
+								}
+								onAIImproveItem={
+									sec.type === "timeline" ? handleAIImproveItem : undefined
 								}
 							/>
 						);
@@ -226,6 +361,20 @@ export function ResumeEditor({
 					<ArrowRight className="size-3.5" />
 				</Button>
 			</div>
+
+			{/* AI Panel */}
+			{showAIPanel && (
+				<AIPanel
+					resumeData={data}
+					activeStep={activeStep}
+					initialContext={aiItemContext}
+					onApplySuggestions={handleApplyAISuggestions}
+					onClose={() => {
+						setShowAIPanel(false);
+						setAiItemContext(null);
+					}}
+				/>
+			)}
 		</div>
 	);
 }

@@ -1,4 +1,10 @@
 import type { ReactNode } from "react";
+import type { ChangeSet } from "../lib/changes";
+import {
+	hasBasicsChanged,
+	hasItemChanged,
+	hasSectionChanged,
+} from "../lib/changes";
 import type {
 	FreeformItem,
 	ResumeBasics,
@@ -41,9 +47,17 @@ function ContactLine({ basics }: { basics: ResumeBasics }) {
 	);
 }
 
-function TimelineItemView({ item }: { item: TimelineItem }) {
+function TimelineItemView({
+	item,
+	changed,
+}: {
+	item: TimelineItem;
+	changed?: boolean;
+}) {
 	return (
-		<div className="mb-2 break-inside-avoid">
+		<div
+			className={`mb-2 break-inside-avoid ${changed ? "pl-2 border-l-2 border-amber-400" : ""}`}
+		>
 			<div className="flex justify-between text-[10.5pt] font-bold">
 				<span>
 					{item.organization}
@@ -65,35 +79,73 @@ function TimelineItemView({ item }: { item: TimelineItem }) {
 	);
 }
 
-function FreeformItemView({ item }: { item: FreeformItem }) {
+function FreeformItemView({
+	item,
+	changed,
+}: {
+	item: FreeformItem;
+	changed?: boolean;
+}) {
 	return (
-		<div className="mb-[4pt] text-[10.5pt] leading-[1.22]">
+		<div
+			className={`mb-[4pt] text-[10.5pt] leading-[1.22] ${changed ? "pl-2 border-l-2 border-amber-400" : ""}`}
+		>
 			<span className="font-bold">{item.label}:</span> <span>{item.text}</span>
 		</div>
 	);
 }
 
-function SectionView({ section }: { section: ResumeSection }) {
+function SectionView({
+	section,
+	changes,
+}: {
+	section: ResumeSection;
+	changes?: ChangeSet;
+}) {
+	const sectionChanged = changes
+		? hasSectionChanged(changes, section.id)
+		: false;
+
 	return (
-		<section className="mt-[8pt]">
+		<section
+			className={`mt-[8pt] ${sectionChanged ? "bg-amber-50 -mx-2 px-2 py-1 rounded" : ""}`}
+		>
 			<h2 className="text-[11pt] font-bold border-b border-black pb-[2pt] mb-2">
 				{section.title}
 			</h2>
 			{section.type === "freeform"
 				? section.items.map((item, i) => (
-						<FreeformItemView key={i} item={item} />
+						<FreeformItemView
+							key={i}
+							item={item}
+							changed={changes ? hasItemChanged(changes, section.id, i) : false}
+						/>
 					))
 				: section.items.map((item, i) => (
-						<TimelineItemView key={i} item={item} />
+						<TimelineItemView
+							key={i}
+							item={item}
+							changed={changes ? hasItemChanged(changes, section.id, i) : false}
+						/>
 					))}
 		</section>
 	);
 }
 
-export function ResumePreview({ data }: { data: ResumeData }) {
+export function ResumePreview({
+	data,
+	changes,
+}: {
+	data: ResumeData;
+	changes?: ChangeSet;
+}) {
+	const basicsChanged = changes ? hasBasicsChanged(changes) : false;
+
 	return (
 		<div className="font-sans text-black w-[210mm] min-h-[297mm] px-[7mm] pt-[12mm] pb-[13mm] mx-auto bg-white shadow-lg">
-			<header className="text-center">
+			<header
+				className={`text-center ${basicsChanged ? "bg-amber-50 -mx-[7mm] px-[7mm] py-1 rounded" : ""}`}
+			>
 				<h1 className="text-[19pt] font-bold uppercase tracking-[0.5pt]">
 					{data.basics.name || "Your Name"}
 				</h1>
@@ -110,7 +162,7 @@ export function ResumePreview({ data }: { data: ResumeData }) {
 			</p>
 
 			{data.sections.map((section) => (
-				<SectionView key={section.id} section={section} />
+				<SectionView key={section.id} section={section} changes={changes} />
 			))}
 		</div>
 	);

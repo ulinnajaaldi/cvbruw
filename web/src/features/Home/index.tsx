@@ -1,7 +1,9 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ResumeEditor } from "#/components/ResumeEditor";
 import { ResumePreview } from "#/components/ResumePreview";
+import type { ChangeSet } from "#/lib/changes";
+import { computeChanges } from "#/lib/changes";
 import type { SavedResume } from "#/lib/db";
 import {
 	clearResumeData,
@@ -26,12 +28,18 @@ const HomeFeature = () => {
 	const navigate = useNavigate({ from: EditorRoute.fullPath });
 
 	const [data, setData] = useState<ResumeData>(sampleData as ResumeData);
+	const [baselineData, setBaselineData] = useState<ResumeData | null>(null);
 	const [loaded, setLoaded] = useState(false);
 	const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
 	const [downloading, setDownloading] = useState(false);
 	const [downloadError, setDownloadError] = useState<string | null>(null);
 	const [resumes, setResumes] = useState<SavedResume[]>([]);
 	const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	const changes: ChangeSet = useMemo(() => {
+		if (!baselineData) return { paths: new Set(), hasChanges: false };
+		return computeChanges(baselineData, data);
+	}, [baselineData, data]);
 
 	useEffect(() => {
 		listResumes().then(setResumes);
@@ -40,12 +48,17 @@ const HomeFeature = () => {
 	useEffect(() => {
 		let cancelled = false;
 		async function load() {
+			let loadedData: ResumeData | null = null;
 			if (resumeId) {
 				const resume = await loadResume(resumeId);
-				if (!cancelled && resume) setData(resume.data);
+				if (!cancelled && resume) loadedData = resume.data;
 			} else {
 				const resume = await loadResume("current");
-				if (!cancelled && resume) setData(resume.data);
+				if (!cancelled && resume) loadedData = resume.data;
+			}
+			if (!cancelled && loadedData) {
+				setData(loadedData);
+				setBaselineData(structuredClone(loadedData));
 			}
 			if (!cancelled) setLoaded(true);
 		}
@@ -118,6 +131,11 @@ const HomeFeature = () => {
 		const saved = await saveResume(sampleData as ResumeData, "New Resume");
 		navigate({ to: "/editor", search: { resumeId: saved.id } });
 		setData(sampleData as ResumeData);
+		setBaselineData(structuredClone(sampleData as ResumeData));
+	}
+
+	function handleMarkReviewed() {
+		setBaselineData(structuredClone(data));
 	}
 
 	return (
@@ -175,6 +193,11 @@ const HomeFeature = () => {
 					<Button variant="ghost" size="sm" onClick={handleReset}>
 						Reset
 					</Button>
+					{changes.hasChanges && (
+						<Button variant="ghost" size="sm" onClick={handleMarkReviewed}>
+							Mark reviewed
+						</Button>
+					)}
 					<Button onClick={handleDownload} disabled={downloading}>
 						{downloading ? "Generating…" : "Download PDF"}
 					</Button>
@@ -194,7 +217,7 @@ const HomeFeature = () => {
 					<ResumeEditor data={data} onChange={setData} />
 				</div>
 				<ScrollArea className="h-full">
-					<ResumePreview data={data} />
+					<ResumePreview data={data} changes={changes} />
 				</ScrollArea>
 			</main>
 		</div>

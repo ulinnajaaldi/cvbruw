@@ -140,7 +140,7 @@ function ContactLine({ basics }: { basics: ResumeData["basics"] }) {
 
 function TimelineEntry({ item }: { item: any }) {
 	return (
-		<View style={{ marginBottom: 6, breakInside: "avoid" }}>
+		<View style={{ marginBottom: 6 }}>
 			<View style={s.timelineHeader}>
 				<Text>
 					{item.organization}
